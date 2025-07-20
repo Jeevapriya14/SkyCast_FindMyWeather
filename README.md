@@ -1,5 +1,5 @@
 # SkyCast - Find My Weather
-## Date:
+## Date: 20/07/2025
 ## Objective:
 To build a responsive single-page application using React that allows users to enter a city name and retrieve real-time weather information using the OpenWeatherMap API. This project demonstrates the use of Axios for API calls, React Router for navigation, React Hooks for state management, controlled components with validation, and basic styling with CSS.
 ## Tasks:
@@ -47,8 +47,135 @@ Create a responsive and clean layout using CSS.
 Style form, buttons, weather display cards, and navigation links.
 
 ## Programs:
+## Weather.jsx
+```
+import React, { useEffect, useState, useMemo } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+function Weather({ city }) {
+  const [weather, setWeather] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!city) {
+      console.log("No city found, redirecting to home");
+      navigate('/');
+      return;
+    }
+    const apiKey = '91a1dcf844967b00c27d548af8e7fcda'; 
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+    console.log("Fetching weather data for:", city);
+    axios
+      .get(url)
+      .then((response) => {
+        console.log("API Success:", response.data);
+        setWeather(response.data);
+        setError('');
+      })
+      .catch((err) => {
+        console.error("API Error:", err);
+        setError('Failed to fetch weather data');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [city, navigate]);
+
+  const fahrenheit = useMemo(() => {
+    if (!weather) return null;
+    return (weather.main.temp * 9) / 5 + 32;
+  }, [weather]);
+
+  return (
+    <div className="container">
+      <h1>Weather in {city}</h1>
+      {loading ? (
+        <p>Loading weather...</p>
+      ) : error ? (
+        <p className="error">{error}</p>
+      ) : weather ? (
+        <div className="card">
+          <p><strong>Temperature:</strong> {weather.main.temp}°C / {fahrenheit.toFixed(1)}°F</p>
+          <p><strong>Humidity:</strong> {weather.main.humidity}%</p>
+          <p><strong>Wind Speed:</strong> {weather.wind.speed} m/s</p>
+          <p><strong>Condition:</strong> {weather.weather[0].main}</p>
+        </div>
+      ) : (
+        <p>No weather data available.</p>
+      )}
+      <button onClick={() => navigate('/')}>Search Another City</button>
+    </div>
+  );
+}
+
+export default Weather;
+```
+## Home.jsx
+
+```
+import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+function Home({ city, setCity }) {
+  const [input, setInput] = useState(city);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = useCallback((e) => {
+    e.preventDefault();
+    if (input.trim() === '') {
+      setError('City name cannot be empty.');
+      return;
+    }
+    setError('');
+    setCity(input);
+    navigate('/weather');
+  }, [input, navigate, setCity]);
+
+  return (
+    <div className="container">
+      <h1>Weather App</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Enter city name"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+        />
+        <button type="submit">Get Weather</button>
+      </form>
+      {error && <p className="error">{error}</p>}
+    </div>
+  );
+}
+
+export default Home;
+```
+## App.jsx
+```
+import React, { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
+import Weather from './pages/Weather';
+function App() {
+  const [city, setCity] = useState('');
+  return (
+    <Routes>
+      <Route path="/" element={<Home city={city} setCity={setCity} />} />
+      <Route path="/Weather" element={<Weather city={city} />} />
+    </Routes>
+  );
+}
+export default App;
+
+```
 
 ## Output:
+
+<img width="1918" height="911" alt="image" src="https://github.com/user-attachments/assets/e8863f33-f138-4622-8f7f-743a50663306" />
+<img width="1917" height="901" alt="image" src="https://github.com/user-attachments/assets/1d0734be-a913-4802-ba3a-eb8f9d459eb4" />
+
 
 ## Result:
 A responsive single-page application using React that allows users to enter a city name and retrieve real-time weather information using the OpenWeatherMap API has been built successfully. 
